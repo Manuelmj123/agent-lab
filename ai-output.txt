@@ -1,0 +1,12 @@
+{
+  "files": [
+    {
+      "path": "src/components/Dashboard.tsx",
+      "content": "import React from 'react';\n\nconst Dashboard: React.FC = () => {\n  return (\n    <div className=\"dashboard-container\">\n      <h1 className=\"dashboard-title\">AI Agents Dashboard</h1>\n      <div className=\"stats-section\">\n        <div className=\"stat-item\">\n          <h2>Active Agents</h2>\n          <p>42</p>\n        </div>\n        <div className=\"stat-item\">\n          <h2>New Agents</h2>\n          <p>10</p>\n        </div>\n        <div className=\"stat-item\">\n          <h2>Total Revenue</h2>\n          <p>$8,500</p>\n        </div>\n      </div>\n      <div className=\"graph-section\">\n        <h2>Performance Overview</h2>\n        <div className=\"graph-placeholder\">Graph Placeholder</div>\n      </div>\n    </div>\n  );\n};\n\nexport default Dashboard;"
+    },
+    {
+      "path": "src/app/page.tsx",
+      "content": "import React from 'react';\nimport Dashboard from '../components/Dashboard';\n\nconst HomePage: React.FC = () => {\n  return (\n    <div className=\"app-container\">\n      <Dashboard />\n    </div>\n  );\n};\n\nexport default HomePage;"
+    }
+  ]
+}
