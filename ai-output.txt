@@ -1,0 +1,14 @@
+```json
+{
+  "files": [
+    {
+      "path": "src/components/AgentCard.tsx",
+      "content": "import React from 'react';\n\ninterface AgentCardProps {\n  name: string;\n  description: string;\n  price: string;\n}\n\nconst AgentCard: React.FC<AgentCardProps> = ({ name, description, price }) => {\n  return (\n    <div className=\"max-w-sm rounded overflow-hidden shadow-lg m-4\">\n      <div className=\"px-6 py-4\">\n        <div className=\"font-bold text-xl mb-2\">{name}</div>\n        <p className=\"text-gray-700 text-base\">\n          {description}\n        </p>\n      </div>\n      <div className=\"px-6 pt-4 pb-2\">\n        <span className=\"inline-block bg-green-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2\">Price: {price}</span>\n      </div>\n    </div>\n  );\n}\n\nexport default AgentCard;\n"
+    },
+    {
+      "path": "src/app/page.tsx",
+      "content": "import React from 'react';\nimport AgentCard from '../components/AgentCard';\n\nconst agents = [\n  { name: 'ChatBot Pro', description: 'An advanced chatbot for customer service.', price: '$49/month' },\n  { name: 'Sales AI', description: 'AI agent for boosting sales conversion rates.', price: '$99/month' },\n  { name: 'SEO Assistant', description: 'Optimize your content with this AI-powered assistant.', price: '$79/month' }\n];\n\nconst DashboardPage: React.FC = () => {\n  return (\n    <div className=\"container mx-auto px-4 py-8\">\n      <h1 className=\"text-4xl font-bold mb-4\">AI Dashboard</h1>\n      <p className=\"text-lg mb-6\">Explore and purchase AI agents tailored to your needs.</p>\n      <div className=\"flex flex-wrap\">\n        {agents.map((agent, index) => (\n          <AgentCard key={index} name={agent.name} description={agent.description} price={agent.price} />\n        ))}\n      </div>\n    </div>\n  );\n};\n\nexport default DashboardPage;\n"
+    }
+  ]
+}
+```
