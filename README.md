@@ -14,23 +14,134 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Agent-Lab: AI Task to GitHub PR Workflow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+This project integrates **Next.js**, **Tailwind (ShadCN)**, and **GitHub Issues + Pull Requests** with AI agents.  
+The system can:
+1. Create **tickets/tasks** in the UI (from GitHub Issues).
+2. Use an **AI Agent** to generate code based on these tasks.
+3. Parse the AI-generated code (structured as JSON).
+4. Create a **new branch**, **commit changes**, and **open a Pull Request** automatically via GitHub's API.
+5. Allow you to approve or deny the PR.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Key Features
+- **Next.js (15.4.4)** frontend with Tailwind + ShadCN components.
+- **`handleCreatePR`** on the frontend calls our `/api/pr` backend to create PRs.
+- **Backend with GitHub App integration** using Octokit.
+- **AI code parsing** (converting JSON output from AI into individual files).
+- **Automatic PR creation** with branch handling (creates or updates `ai-task-{id}` branches).
+- **Fallback safety:** If AI output is malformed, `ai-output.txt` is created.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Workflow
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 1. AI Generates Code
+The AI returns structured JSON:
+```json
+{
+  "files": [
+    {
+      "path": "src/components/Sidebar.tsx",
+      "content": "import React from 'react'; ..."
+    },
+    {
+      "path": "src/app/page.tsx",
+      "content": "import Sidebar from '../components/Sidebar'; ..."
+    }
+  ]
+}
+```
 
-## Deploy on Vercel
+### 2. Parsing AI Output
+We use `parseAICodePatch` to ensure valid file objects are extracted:
+```ts
+export function parseAICodePatch(rawPatch: any): FileChange[] {
+  const raw = typeof rawPatch === "string" ? rawPatch : JSON.stringify(rawPatch, null, 2);
+  const cleaned = raw.replace(/```json|```/g, "").trim();
+  try {
+    const parsed = JSON.parse(cleaned);
+    if (parsed.files && Array.isArray(parsed.files)) {
+      return parsed.files.map((f: any, i: number) => ({
+        path: f.path || `ai-file-${i}.txt`,
+        content: typeof f.content === "string" ? f.content : JSON.stringify(f.content),
+      }));
+    }
+  } catch (e) {
+    console.warn("Failed to parse AI patch, fallback to ai-output.txt");
+  }
+  return [{ path: "ai-output.txt", content: raw }];
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 3. Frontend: handleCreatePR
+The `handleCreatePR` function sends parsed files to the backend:
+```ts
+const handleCreatePR = async (task: Task, rawPatch: any, plan: string) => {
+  const files = parseAICodePatch(rawPatch);
+  const res = await fetch("/api/pr", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      branchName: `ai-task-${task.id}`,
+      commitMessage: `AI-generated code for #${task.id}`,
+      files,
+      plan,
+    }),
+  });
+};
+```
+
+---
+
+## 4. Backend: /api/pr/route.ts
+The backend:
+- Validates payload.
+- Creates a new branch or updates existing one.
+- Commits all files.
+- Opens a Pull Request on GitHub.
+
+Key code snippet:
+```ts
+const treeItems = await Promise.all(
+  files.map(async (file) => {
+    const blob = await octokit.git.createBlob({
+      owner,
+      repo,
+      content: file.content,
+      encoding: "utf-8",
+    });
+    return { path: file.path, mode: "100644", type: "blob", sha: blob.data.sha };
+  })
+);
+```
+
+---
+
+## Requirements
+- **GitHub App** with permissions:
+  - Contents: Read & Write
+  - Pull Requests: Read & Write
+- **Environment variables**:
+  ```
+  GITHUB_REPO=your-username/agent-lab
+  GITHUB_APP_ID=your_app_id
+  GITHUB_APP_INSTALLATION_ID=installation_id
+  GITHUB_APP_PRIVATE_KEY_PATH=./github-app-private-key.pem
+  ```
+
+---
+
+## Summary
+With these components:
+- **Frontend** prepares tasks and triggers AI code generation.
+- **`parseAICodePatch`** extracts real files.
+- **Backend** (`/api/pr`) creates a PR with those files.
+
+This ensures an **automated workflow from AI tasks → GitHub Pull Requests**.
+
+---

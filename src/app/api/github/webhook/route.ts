@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { addTask } from "@/lib/taskStore";
 
 const secret = process.env.GITHUB_WEBHOOK_SECRET!;
 
@@ -33,6 +34,7 @@ export async function POST(req: NextRequest) {
       labels: payload.issue.labels.map((l: any) => l.name),
     };
 
+    addTask(task)
     console.log("New structured task:", task);
   }
 
