@@ -1,0 +1,14 @@
+```json
+{
+  "files": [
+    {
+      "path": "src/components/Dashboard.tsx",
+      "content": "import React from 'react';\nimport { Box, Grid, Card, Typography } from '@mui/material';\n\nconst Dashboard = () => {\n  return (\n    <Box sx={{ width: '100%', bgcolor: 'background.paper', padding: 4 }}>\n      <Typography variant=\"h4\" component=\"h1\" gutterBottom>\n        AI Agents Dashboard\n      </Typography>\n      <Grid container spacing={4}>\n        {Array.from({ length: 4 }).map((_, index) => (\n          <Grid item xs={12} sm={6} md={3} key={index}>\n            <Card sx={{ padding: 2 }}>\n              <Typography variant=\"h6\" component=\"div\">\n                Agent {index + 1}\n              </Typography>\n              <Typography variant=\"body2\" color=\"text.secondary\">\n                Some statistics...\n              </Typography>\n            </Card>\n          </Grid>\n        ))}\n      </Grid>\n    </Box>\n  );\n};\n\nexport default Dashboard;"
+    },
+    {
+      "path": "src/app/page.tsx",
+      "content": "import React from 'react';\nimport { Container } from '@mui/material';\nimport Dashboard from '../components/Dashboard';\n\nconst HomePage = () => {\n  return (\n    <Container maxWidth=\"lg\">\n      <Dashboard />\n    </Container>\n  );\n};\n\nexport default HomePage;"
+    }
+  ]
+}
+```
